@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+.env
+.env.local
+.neon
+*.log
+.DS_Store
+graphify-out
