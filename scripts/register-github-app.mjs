@@ -35,9 +35,10 @@ const manifest = {
   },
   default_events: ["pull_request"],
   hook_attributes: {
-    // Inactive until we expose a public webhook URL (e.g. via smee / deploy).
+    // Active so PR events deliver immediately after registration.
+    // For local dev, point this at a smee.io URL via `npm run github:webhook`.
     url: "https://example.com/rivet-webhook",
-    active: false,
+    active: true,
   },
 };
 
