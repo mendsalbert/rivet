@@ -84,7 +84,7 @@ async function* runModelAgent(diff: string): AsyncGenerator<ReviewEvent> {
         }),
         execute: async (input) => {
           collected.push({
-            id: `m-${collected.length + 1}`,
+            id: crypto.randomUUID(),
             ...input,
           });
           return { recorded: true };
@@ -119,7 +119,7 @@ async function* runModelAgent(diff: string): AsyncGenerator<ReviewEvent> {
       yield {
         type: "finding",
         finding: {
-          id: `m-${seen.size}`,
+          id: crypto.randomUUID(),
           severity: input.severity,
           file: input.file,
           line: input.line,

@@ -86,10 +86,19 @@ export async function createReview(input: {
 }
 
 export async function getReview(id: string, userId: string): Promise<Review | null> {
+  const review = await getReviewById(id);
+  if (!review) return null;
+  if (review.userId === userId) return review;
+  // GitHub App reviews are owned by the installation, not a Neon Auth user.
+  if (review.userId.startsWith("github-app:")) return review;
+  return null;
+}
+
+export async function getReviewById(id: string): Promise<Review | null> {
   const db = getDb();
   if (db && isDatabaseConfigured()) {
     const [row] = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
-    if (!row || row.userId !== userId) return null;
+    if (!row) return null;
     const items = await db
       .select()
       .from(findings)
@@ -126,7 +135,7 @@ export async function getReview(id: string, userId: string): Promise<Review | nu
   }
 
   const row = memory().reviews.get(id);
-  if (!row || row.userId !== userId) return null;
+  if (!row) return null;
   return asReview(row, memory().findings.get(id) ?? []);
 }
 

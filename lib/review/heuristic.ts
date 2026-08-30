@@ -1,15 +1,11 @@
 import { addedLines, parseUnifiedDiff } from "./parse-diff";
 import type { Finding, ReviewEvent, Verdict } from "./types";
 
-function id(prefix: string, index: number) {
-  return `${prefix}-${index}`;
-}
-
 function push(
   findings: Finding[],
   finding: Omit<Finding, "id">,
 ) {
-  findings.push({ id: id("f", findings.length + 1), ...finding });
+  findings.push({ id: crypto.randomUUID(), ...finding });
 }
 
 export function inspectDiff(diff: string): { findings: Finding[]; verdict: Verdict; summary: string } {

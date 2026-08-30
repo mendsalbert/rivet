@@ -54,6 +54,21 @@ export async function processPullRequestWebhook(payload: PullRequestPayload) {
   const token = await getInstallationToken(installationId);
   const pr = await fetchPullRequestWithToken(owner, repo, number, token);
 
+  if (!pr.diff.trim()) {
+    await postPullRequestReview({
+      token,
+      owner,
+      repo,
+      number,
+      commitId: pr.commitSha,
+      summary:
+        "No file changes in this pull request, so Rivet has nothing to review. Push a commit that modifies files, then Rivet will run again.",
+      verdict: "comment",
+      findings: [],
+    });
+    return { reviewId: null, findings: 0, verdict: "comment" as const, skipped: "empty_diff" };
+  }
+
   const reviewId = crypto.randomUUID();
   const diffKey = isStorageConfigured() ? `${userId}/${reviewId}.diff` : null;
   if (diffKey) await uploadDiff(diffKey, pr.diff);
@@ -81,8 +96,9 @@ export async function processPullRequestWebhook(payload: PullRequestPayload) {
     for await (const event of runReviewAgent(pr.diff)) {
       if (event.type === "finding") {
         order += 1;
-        findings.push(event.finding);
-        await saveFinding(reviewId, event.finding, order);
+        const finding = { ...event.finding, id: crypto.randomUUID() };
+        findings.push(finding);
+        await saveFinding(reviewId, finding, order);
       }
       if (event.type === "complete") {
         summary = event.summary;
@@ -112,6 +128,20 @@ export async function processPullRequestWebhook(payload: PullRequestPayload) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Review failed";
     await failReview(reviewId, message);
+    try {
+      await postPullRequestReview({
+        token,
+        owner,
+        repo,
+        number,
+        commitId: pr.commitSha,
+        summary: `Rivet could not finish this review: ${message}`,
+        verdict: "comment",
+        findings: [],
+      });
+    } catch {
+      // ignore secondary post failure
+    }
     throw error;
   }
 }

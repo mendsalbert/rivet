@@ -3,6 +3,7 @@ loadEnvConfig(process.cwd());
 import { processPullRequestWebhook } from "../lib/github-webhook";
 
 async function main() {
+  const number = Number(process.argv[2] || "3");
   const payload = {
     action: "opened",
     installation: { id: 157735812 },
@@ -12,11 +13,11 @@ async function main() {
       full_name: "mendsalbert/rivet",
     },
     pull_request: {
-      number: 2,
-      title: "test: trigger Rivet review",
-      html_url: "https://github.com/mendsalbert/rivet/pull/2",
+      number,
+      title: `PR #${number}`,
+      html_url: `https://github.com/mendsalbert/rivet/pull/${number}`,
       draft: false,
-      head: { sha: "d6d0eca" },
+      head: { sha: "placeholder" },
     },
   };
 

@@ -108,7 +108,6 @@ export async function fetchPullRequestWithToken(
     draft?: boolean;
   };
   const diff = await diffRes.text();
-  if (!diff.trim()) throw new Error("That pull request has an empty diff.");
 
   return {
     title: meta.title || `PR #${number}`,
@@ -203,14 +202,14 @@ export async function postPullRequestReview(input: {
         body: JSON.stringify({
           commit_id: input.commitId,
           body: buildReviewBody(input.summary, input.findings, input.reviewUrl),
-          event: reviewEvent(input.verdict) === "APPROVE" ? "COMMENT" : reviewEvent(input.verdict),
+          event: body.event,
         }),
       },
     );
   }
 
-  // Bots sometimes cannot APPROVE; fall back to COMMENT.
-  if (!response.ok && body.event === "APPROVE") {
+  // Own-PR / bot limits: APPROVE and REQUEST_CHANGES can 422 — fall back to COMMENT.
+  if (!response.ok && body.event !== "COMMENT") {
     response = await fetch(
       `${API}/repos/${input.owner}/${input.repo}/pulls/${input.number}/reviews`,
       {
