@@ -11,14 +11,19 @@ export default async function ReviewsPage() {
 
   return (
     <main className="page-shell">
-      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="page-kicker">Reviews</p>
           <h1 className="page-title">The ledger.</h1>
         </div>
-        <Link href="/reviews/new" className="btn">
-          New review
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/install" className="btn btn-ghost">
+            Install on GitHub
+          </Link>
+          <Link href="/reviews/new" className="btn">
+            New review
+          </Link>
+        </div>
       </div>
 
       <ul className="ledger-list">
