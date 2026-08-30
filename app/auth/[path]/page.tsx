@@ -18,7 +18,7 @@ export default async function AuthPage({
     <main className="auth-shell">
       <div className="auth-card">
         <p className="wordmark text-5xl">Rivet</p>
-        <p className="mt-3 text-sm text-[var(--muted)]">Sign in to run a review.</p>
+        <p className="mt-3 text-sm text-[var(--muted)]">Hand Rivet a patch after you sign in.</p>
         <div className="mt-8">
           <AuthView path={path} />
         </div>
