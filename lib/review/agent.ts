@@ -1,8 +1,14 @@
 import { inspectDiff, runHeuristicAgent } from "./heuristic";
 import type { Finding, ReviewEvent, Verdict } from "./types";
 
+type LanguageModel = Parameters<typeof import("ai").streamText>[0]["model"];
+
+export function geminiApiKey() {
+  return process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || "";
+}
+
 export function isAiConfigured() {
-  return Boolean(process.env.NEON_AI_GATEWAY_TOKEN);
+  return Boolean(geminiApiKey() || process.env.NEON_AI_GATEWAY_TOKEN);
 }
 
 const SYSTEM = `You are Rivet, a senior code-review agent.
@@ -33,19 +39,36 @@ export async function* runReviewAgent(diff: string): AsyncGenerator<ReviewEvent>
   }
 }
 
-async function* runModelAgent(diff: string): AsyncGenerator<ReviewEvent> {
+async function resolveModel(): Promise<{ model: LanguageModel; label: string }> {
+  const googleKey = geminiApiKey();
+  if (googleKey) {
+    const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+    const google = createGoogleGenerativeAI({ apiKey: googleKey });
+    const modelId = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    return { model: google(modelId), label: modelId };
+  }
+
   const { neon } = await import("@neon/ai-sdk-provider");
+  return { model: neon("claude-sonnet-4-6"), label: "claude-sonnet-4-6" };
+}
+
+async function* runModelAgent(diff: string): AsyncGenerator<ReviewEvent> {
   const { streamText, tool, stepCountIs } = await import("ai");
   const { z } = await import("zod");
+  const { model, label } = await resolveModel();
 
-  yield { type: "status", phase: "reading", detail: "Sending the patch to the review agent." };
+  yield {
+    type: "status",
+    phase: "reading",
+    detail: `Sending the patch to ${label}.`,
+  };
 
   const collected: Finding[] = [];
   let summary: string | null = null;
   let verdict: Verdict | null = null;
 
   const result = streamText({
-    model: neon("claude-sonnet-4-6"),
+    model,
     system: SYSTEM,
     prompt: truncateDiff(diff),
     tools: {

@@ -15,6 +15,7 @@ export async function SiteHeader() {
       </Link>
       <nav>
         <Link href="/reviews">Reviews</Link>
+        <Link href="/install">Install</Link>
         {authOn && user && user.id !== "demo" ? (
           <AuthUserButton />
         ) : authOn ? (
