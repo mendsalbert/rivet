@@ -10,4 +10,5 @@ graphify-out
 *.pem
 .github-app.local.json
 rivet-github-app.pem
-scripts/
+
+starter/

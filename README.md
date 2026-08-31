@@ -15,6 +15,8 @@ Rivet does not summarize the PR description. It walks the patch and stops on the
 
 No Neon project or API keys required. Reviews live in memory until the server restarts.
 
+**Tutorial learners:** use the [`starter/`](starter/) directory — same UI, with `TUTORIAL:` stubs to fill in episode by episode. See [`starter/STARTER.md`](starter/STARTER.md).
+
 ```bash
 npm install
 npm run dev
